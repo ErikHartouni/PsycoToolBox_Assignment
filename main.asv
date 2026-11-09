@@ -1,0 +1,124 @@
+ %% initial variables
+
+SCREEN_NUMBER = 0;
+
+BG_COLOR = [0, 0, 0];
+WINDOW_RECT = [0,0, 1500, 1000];
+R = 50;
+FRACTAL_NUMBERS = 48; 
+NUMBER_OF_AVALABLE_FRACTAL_SHOWS = [3, 5, 7, 9];
+
+
+TRIALS = 144;
+
+%% inital show variables
+
+state = 0;
+next_satae = 1;
+% fixation 
+FIXATION_CIRCLE_RADIUS = 10;
+FIXATION_TIME = 0.5; 
+FIXATION_DISAPPEAR_TIME = 0.3 ;
+
+%% initial uploads
+[H_image, W_image, fractals] = upload_fractals('data', FRACTAL_NUMBERS);
+
+%% initial calculations
+[p_n3, p_n5, p_n7, p_n9] = initialize_position_for_all_n(WINDOW_RECT, R, W_image, H_image);
+
+    
+
+%% window start
+[w_ptr, WINDOW_RECT] = Screen('OpenWindow', SCREEN_NUMBER, BG_COLOR, WINDOW_RECT);
+
+WINDOW_CENTER = [WINDOW_RECT(3) - WINDOW_RECT(1), WINDOW_RECT(4) - WINDOW_RECT(2)]/2;
+
+%% showing fractals
+% number_of_fractals_shown = NUMBER_OF_AVALABLE_FRACTAL_SHOWS(randi(4))
+% for i = 1:number_of_fractals_shown
+% 
+%     img = fractals(i,:,:,:);
+%     img = reshape(img, [W_image, H_image, 3]);
+%     my_texture = Screen('MakeTexture', w_ptr, img);
+% 
+%     if number_of_fractals_shown == 3 
+%         Screen('DrawTexture', w_ptr, my_texture, [], p_n3(:,i));
+%     elseif number_of_fractals_shown == 5
+%         Screen('DrawTexture', w_ptr, my_texture, [], p_n5(:,i));
+%     elseif number_of_fractals_shown == 7 
+%         Screen('DrawTexture', w_ptr, my_texture, [], p_n7(:,i));
+%     elseif number_of_fractals_shown == 9 
+%         Screen('DrawTexture', w_ptr, my_texture, [], p_n9(:,i));
+%     end
+% 
+% end
+% Screen('Flip', w_ptr);
+% 
+% 
+% KbWait();
+% sca();
+
+
+%% enterinng the main loop
+
+while state ~= 10
+    disp(state)
+    
+    if state == 0
+        trial = 0;
+        next_state = 1;
+    elseif state == 1
+        trial = trial + 1;
+
+        % fixation
+        Screen('DrawDots', w_ptr,WINDOW_CENTER, FIXATION_CIRCLE_RADIUS, [0, 0, 255], [], 2 );
+        Screen('Flip', w_ptr);
+        WaitSecs(FIXATION_TIME);
+        next_state = 2;
+    elseif state == 2
+        % fixation dissappear 
+        Screen('Flip', w_ptr);
+        WaitSecs(FIXATION_DISAPPEAR_TIME);
+        
+
+        % object onset
+        
+
+        next_state = 3;
+
+    elseif state == 3 
+        %object selection
+
+    elseif state == 4
+        % display off
+
+    elseif state == 5
+        % NO PRESS 
+
+
+    elseif state == 6
+        % REJECT PRESS TA
+
+
+    elseif state == 7
+        % REJECT PRESS TP
+
+
+    elseif state == 8
+        % REWARD DELIVARY 
+
+
+    elseif state == 9
+        % ending
+        break
+    end
+        
+
+
+
+state = next_state;
+end
+
+
+KbWait();
+sca();

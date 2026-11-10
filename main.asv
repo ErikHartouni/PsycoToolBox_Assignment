@@ -11,6 +11,9 @@ NUMBER_OF_AVALABLE_FRACTAL_SHOWS = [3, 5, 7, 9];
 
 TRIALS = 144;
 
+%% subject variables
+SUBJECT_NAME = 'ERIK';
+SUBJECT_ID = 401102778;
 %% inital show variables
 
 state = 0;
@@ -18,11 +21,11 @@ next_satae = 1;
 % fixation 
 FIXATION_CIRCLE_RADIUS = 10;
 FIXATION_TIME = 0.5; 
-FIXATION_DISAPPEAR_TIME = 0.3 ;
+FIXATION_DISAPPEAR_TIME = 0.0 ;
 
-%% initial uploads
+%% initial uploads of data
 [H_image, W_image, fractals] = upload_fractals('data', FRACTAL_NUMBERS);
-
+value_of_fractal = give_initial_0_1_for_subject(SUBJECT_ID)
 %% initial calculations
 [p_n3, p_n5, p_n7, p_n9] = initialize_position_for_all_n(WINDOW_RECT, R, W_image, H_image);
 
@@ -61,6 +64,9 @@ WINDOW_CENTER = [WINDOW_RECT(3) - WINDOW_RECT(1), WINDOW_RECT(4) - WINDOW_RECT(2
 
 %% enterinng the main loop
 
+rng('shuffle');
+
+
 while state ~= 10
     disp(state)
     
@@ -68,7 +74,7 @@ while state ~= 10
         trial = 0;
         next_state = 1;
     elseif state == 1
-        trial = trial + 1;
+        trial = trial + 1; 
 
         % fixation
         Screen('DrawDots', w_ptr,WINDOW_CENTER, FIXATION_CIRCLE_RADIUS, [0, 0, 255], [], 2 );
@@ -81,8 +87,10 @@ while state ~= 10
         WaitSecs(FIXATION_DISAPPEAR_TIME);
         
 
-        % object onset
+        % object selection
+        [] = select_fractals()
         
+       
 
         next_state = 3;
 
@@ -122,3 +130,15 @@ end
 
 KbWait();
 sca();
+
+
+
+%% functions
+function [fractal_indexees, index_of_high_fractal] = select_fractals(fractals_avalable, fractal_values, to_have_high_value, number_of_fractals_to_show)
+    fractals_without_high_value = fractal_values == 0;
+    fractals_with_high_value = fractal_values == 1;
+
+    fractal_indexees = randsample(fractals_avalable(fractals_without_high_value), number_of_fractals_to_show- to_have_high_value);
+    index_of_high_fractal = randsample(fractals_avalable(fractals_with_high_value),  to_have_high_value);
+
+end

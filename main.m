@@ -11,6 +11,9 @@ NUMBER_OF_AVALABLE_FRACTAL_SHOWS = [3, 5, 7, 9];
 
 TRIALS = 144;
 
+%% subject variables
+SUBJECT_NAME = 'ERIK';
+SUBJECT_ID = 401102778;
 %% inital show variables
 
 state = 0;
@@ -18,11 +21,11 @@ next_satae = 1;
 % fixation 
 FIXATION_CIRCLE_RADIUS = 10;
 FIXATION_TIME = 0.5; 
-FIXATION_DISAPPEAR_TIME = 0.3 ;
+FIXATION_DISAPPEAR_TIME = 0.0 ; 
 
-%% initial uploads
+%% initial uploads of data
 [H_image, W_image, fractals] = upload_fractals('data', FRACTAL_NUMBERS);
-
+value_of_fractal = give_initial_0_1_for_subject(SUBJECT_ID, FRACTAL_NUMBERS);
 %% initial calculations
 [p_n3, p_n5, p_n7, p_n9] = initialize_position_for_all_n(WINDOW_RECT, R, W_image, H_image);
 
@@ -34,7 +37,7 @@ FIXATION_DISAPPEAR_TIME = 0.3 ;
 WINDOW_CENTER = [WINDOW_RECT(3) - WINDOW_RECT(1), WINDOW_RECT(4) - WINDOW_RECT(2)]/2;
 
 %% showing fractals
-% number_of_fractals_shown = NUMBER_OF_AVALABLE_FRACTAL_SHOWS(randi(4))
+% number_of_fractals_shown = NUMBER_OF_AVALABLE_FRACTAL_SHOWS(randi(4)) 
 % for i = 1:number_of_fractals_shown
 % 
 %     img = fractals(i,:,:,:);
@@ -61,6 +64,9 @@ WINDOW_CENTER = [WINDOW_RECT(3) - WINDOW_RECT(1), WINDOW_RECT(4) - WINDOW_RECT(2
 
 %% enterinng the main loop
 
+rng('shuffle');
+
+
 while state ~= 10
     disp(state)
     
@@ -81,14 +87,33 @@ while state ~= 10
         WaitSecs(FIXATION_DISAPPEAR_TIME);
         
 
-        % ~~~ object onset ~~~
+        % object selection
+        number_of_fractals_in_this_set = randsample(NUMBER_OF_AVALABLE_FRACTAL_SHOWS,1);
+
+        use_value_group = randsample([0, 1], 1);
+        if use_value_group
+            fractals_to_select = 1 : (FRACTAL_NUMBERS/2 );
+        else
+            fractals_to_select = (FRACTAL_NUMBERS/2+1):(FRACTAL_NUMBERS);
+        end
+
+
+        to_have_high_value = randsample([0, 1], 1);
+        [fractal_indexees, index_of_high_fractal] = select_fractals_for_one_set( ...
+                                                    fractals_to_select, ...
+                                                    value_of_fractal(fractals_to_select), ...
+                                                    to_have_high_value, ...
+                                                    number_of_fractals_in_this_set);
+
+        
         
        
 
-        next_state = 3;
+        next_state = 10;
 
     elseif state == 3 
         %object selection
+        
 
     elseif state == 4
         % display off
@@ -123,3 +148,4 @@ end
 
 KbWait();
 sca();
+

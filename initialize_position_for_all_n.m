@@ -13,25 +13,25 @@ function positions = initial_position_with_n(window_retc, n, r, W_image, H_image
     %check the total radius of page
     if r * 2 + W_image > (window_retc(3) - window_retc(1) )
 
-        k = (window_retc(3) - window_retc(1)) / (2 * r + W_image)
+        k = (window_retc(3) - window_retc(1)) / (2 * r + W_image);
         r = k * r;
         W_image = W_image * k;
         H_image = H_image * k;
     end
 
     if r * 2 + H_image > (window_retc(4) - window_retc(2) )
-        k = (window_retc(4) - window_retc(2)) / (2 * r + H_image)
+        k = (window_retc(4) - window_retc(2)) / (2 * r + H_image);
         r = k * r;
         W_image = W_image * k;
         H_image = H_image * k;
     end
 
     %check the diameter of r again
-    r = min(max(r, H_image/sin(2 * pi/n)), W_image / (1-cos(2 * pi/n)) )
+    r = min(max(r, H_image/sin(2 * pi/n)), W_image / (1-cos(2 * pi/n)) );
 
     
 
-    window_center = [(window_retc(3)-window_retc(1))/2,  (window_retc(4)-window_retc(2))/2]
+    window_center = [(window_retc(3)-window_retc(1))/2,  (window_retc(4)-window_retc(2))/2];
     positions = zeros([4,n]);
     for k = 0:(n-1)
         theta = 2 * pi / n * k;

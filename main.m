@@ -9,11 +9,14 @@ FRACTAL_NUMBERS = 48;
 NUMBER_OF_AVALABLE_FRACTAL_SHOWS = [3, 5, 7, 9];
 
 
-TRIALS = 4;
+TOTAL_TRIAL_NUMBER= 4;
+
+REWARD_AMOUNT = 1000;
 
 %% subject variables
 SUBJECT_NAME = 'ERIK';
 SUBJECT_ID = 401102778;
+total = 0.0;
 %% inital show variables
 
 state = 0;
@@ -25,6 +28,17 @@ FIXATION_DISAPPEAR_TIME = 0.0 ;
 
 % show of fractals
 FRACTAL_SHOW_SECONDS = 3.0;
+
+%show of No Press
+NO_PRESS_WINDOW_TIME = 1.5;
+
+% rejection time
+TA_REJECTION_WITH_REWARD_TIME = 1.5;
+TA_REJECTION_WITHOUT_REWARD_TIME = 1.5;
+TP_REJECTION_TIME = 1.5;
+
+% deward delivarytime
+REWARD_DELIVARY_TIME = 1.5;
 %% initial uploads of data
 [H_image, W_image, fractals] = upload_fractals('data', FRACTAL_NUMBERS);
 value_of_fractal = give_initial_0_1_for_subject(SUBJECT_ID, FRACTAL_NUMBERS);
@@ -49,7 +63,7 @@ rng('shuffle');
 
 
 while state ~= 10
-    disp(state)
+    
     
     if state == 0
         trial = 0;
@@ -85,10 +99,12 @@ while state ~= 10
                                                     fractals_to_select, ...
                                                     value_of_fractal(fractals_to_select), ...
                                                     to_have_high_value, ...
-                                                    number_of_fractals_in_this_set);
-
-        fractal_indexees = [fractal_indexees , index_of_high_fractal];
-        
+                                                    number_of_fractals_in_this_set)
+        if index_of_high_fractal ~= -1
+            fractal_indexees = [fractal_indexees , index_of_high_fractal]
+        end
+        shuffled_indexes = randperm(length(fractal_indexees));
+        fractal_indexees = fractal_indexees(shuffled_indexes);
 
         if number_of_fractals_in_this_set == 3
             p_n = p_n3;
@@ -111,10 +127,13 @@ while state ~= 10
             img = fractals(i,:,:,:);  
             img = reshape(img, [W_image, H_image, 3]); 
             my_texture = Screen('MakeTexture', w_ptr, img);
-
             
             Screen('DrawTexture', w_ptr, my_texture, [], p_n(:,k), 2*pi*rand());
-             
+            
+            if index_of_high_fractal == i
+                Screen('FrameRect', w_ptr, [255,0,0],p_n(:,k), 4);
+                index_of_high_fractal_in_this_set = k;
+            end
         end
         
         
@@ -139,11 +158,11 @@ while state ~= 10
         KbQueueStop(DEVICE_NUMBER);
         [pressed, firstPress] = KbQueueCheck(DEVICE_NUMBER);
 
-        next_state = 10;
         [pressed_chars, mouse_position] = give_pressed_keys(firstPress, positions)
 
 
         % verification of score - ITI
+        pressed
         if pressed == 0
             next_state = 5;
         elseif  strcmp(pressed_chars(1), 'x')
@@ -156,7 +175,7 @@ while state ~= 10
             end
 
         else % pressed 'space'
-            if give_index_of_the_selected_fractal == -1
+            if give_index_of_the_selected_fractal(mouse_position,p_n) == -1
                 next_state = 5;
             else
                 next_state = 8;
@@ -165,28 +184,65 @@ while state ~= 10
 
     elseif state == 5
         % NO PRESS
+        Screen('DrawText', w_ptr, 'No Press', WINDOW_CENTER(1), WINDOW_CENTER(2), [255, 255, 255]);
+        total_string = sprintf('total = %.2f $', total); 
+        Screen('DrawText', w_ptr, total_string, WINDOW_CENTER(1), WINDOW_CENTER(2)+30, [255, 255, 255]);
+        Screen('Flip', w_ptr);
         
+        WaitSecs(NO_PRESS_WINDOW_TIME);
 
-
+        next_state = 9;
     elseif state == 6
          % REJECT PRESS TA
+        Screen('DrawText', w_ptr, 'REJECTED TA', WINDOW_CENTER(1), WINDOW_CENTER(2), [255, 255, 255]);
+        total_string = sprintf('total = %.2f $', total); 
+        Screen('DrawText', w_ptr, total_string, WINDOW_CENTER(1), WINDOW_CENTER(2)+30, [255, 255, 255]);
+        Screen('Flip', w_ptr);
 
+        WaitSecs(TA_REJECTION_WITHOUT_REWARD_TIME);
+        next_state = 9;
 
     elseif state == 7
         % REJECT PRESS TP
-
+        Screen('DrawText', w_ptr, 'REJECTED TP', WINDOW_CENTER(1), WINDOW_CENTER(2), [255, 255, 255]);
+        total_string = sprintf('total = %.2f $', total); 
+        Screen('DrawText', w_ptr, total_string, WINDOW_CENTER(1), WINDOW_CENTER(2)+30, [255, 255, 255]);
+        Screen('Flip', w_ptr);
+        
+        WaitSecs(TP_REJECTION_TIME);
+        next_state = 9;
 
     elseif state == 8
          % REWARD DELIVARY
+         if give_index_of_the_selected_fractal(mouse_position,p_n) == index_of_high_fractal_in_this_set
+            total = total + REWARD_AMOUNT;
+            Screen('DrawText', w_ptr, 'CORRECT', WINDOW_CENTER(1), WINDOW_CENTER(2), [255, 255, 255]);
+            total_string = sprintf('total = %.2f $', total); 
+            Screen('DrawText', w_ptr, total_string, WINDOW_CENTER(1), WINDOW_CENTER(2)+30, [0, 255, 0]);
+            Screen('Flip', w_ptr);
+         else 
+            Screen('DrawText', w_ptr, 'Wrong', WINDOW_CENTER(1), WINDOW_CENTER(2), [255, 0, 0]);
+            total_string = sprintf('total = %.2f $', total); 
+            Screen('DrawText', w_ptr, total_string, WINDOW_CENTER(1), WINDOW_CENTER(2)+30, [255, 255, 255]);
+            Screen('Flip', w_ptr);
+
+         end
+         WaitSecs(REWARD_DELIVARY_TIME);
+         next_state = 9;
 
     elseif state == 9
-
+        if trial < TOTAL_TRIAL_NUMBER
+            next_state= 1;
+        else
+            next_state = 10;
+        end
 
     elseif state == 10 
         % ending
         break
     end
         
+
 
 
 

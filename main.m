@@ -3,13 +3,13 @@
 SCREEN_NUMBER = 0;
 
 BG_COLOR = [0, 0, 0];
-WINDOW_RECT = [0,0, 1500, 1000];
+WINDOW_RECT = [500,500, 1500, 1000];
 R = 50;
 FRACTAL_NUMBERS = 48; 
 NUMBER_OF_AVALABLE_FRACTAL_SHOWS = [3, 5, 7, 9];
 
 
-TRIALS = 144;
+TRIALS = 4;
 
 %% subject variables
 SUBJECT_NAME = 'ERIK';
@@ -23,43 +23,24 @@ FIXATION_CIRCLE_RADIUS = 10;
 FIXATION_TIME = 0.5; 
 FIXATION_DISAPPEAR_TIME = 0.0 ; 
 
+% show of fractals
+FRACTAL_SHOW_SECONDS = 3.0;
 %% initial uploads of data
 [H_image, W_image, fractals] = upload_fractals('data', FRACTAL_NUMBERS);
 value_of_fractal = give_initial_0_1_for_subject(SUBJECT_ID, FRACTAL_NUMBERS);
 %% initial calculations
 [p_n3, p_n5, p_n7, p_n9] = initialize_position_for_all_n(WINDOW_RECT, R, W_image, H_image);
 
-    
+%% Listeners
+DEVICE_NUMBER = -1;
+MOUSE_DEVICE = 1;
+
 
 %% window start
 [w_ptr, WINDOW_RECT] = Screen('OpenWindow', SCREEN_NUMBER, BG_COLOR, WINDOW_RECT);
 
 WINDOW_CENTER = [WINDOW_RECT(3) - WINDOW_RECT(1), WINDOW_RECT(4) - WINDOW_RECT(2)]/2;
 
-%% showing fractals
-% number_of_fractals_shown = NUMBER_OF_AVALABLE_FRACTAL_SHOWS(randi(4)) 
-% for i = 1:number_of_fractals_shown
-% 
-%     img = fractals(i,:,:,:);
-%     img = reshape(img, [W_image, H_image, 3]);
-%     my_texture = Screen('MakeTexture', w_ptr, img);
-% 
-%     if number_of_fractals_shown == 3 
-%         Screen('DrawTexture', w_ptr, my_texture, [], p_n3(:,i));
-%     elseif number_of_fractals_shown == 5
-%         Screen('DrawTexture', w_ptr, my_texture, [], p_n5(:,i));
-%     elseif number_of_fractals_shown == 7 
-%         Screen('DrawTexture', w_ptr, my_texture, [], p_n7(:,i));
-%     elseif number_of_fractals_shown == 9 
-%         Screen('DrawTexture', w_ptr, my_texture, [], p_n9(:,i));
-%     end
-% 
-% end
-% Screen('Flip', w_ptr);
-% 
-% 
-% KbWait();
-% sca();
 
 
 %% enterinng the main loop
@@ -72,6 +53,7 @@ while state ~= 10
     
     if state == 0
         trial = 0;
+        KbQueueCreate(DEVICE_NUMBER);
         next_state = 1;
     elseif state == 1
         trial = trial + 1; 
@@ -105,25 +87,89 @@ while state ~= 10
                                                     to_have_high_value, ...
                                                     number_of_fractals_in_this_set);
 
+        fractal_indexees = [fractal_indexees , index_of_high_fractal];
         
-        
+
+        if number_of_fractals_in_this_set == 3
+            p_n = p_n3;
+        elseif number_of_fractals_in_this_set == 5
+            p_n = p_n5;
+        elseif number_of_fractals_in_this_set == 7
+            p_n = p_n7;
+        elseif number_of_fractals_in_this_set == 9
+            p_n = p_n9;
+        end
        
 
-        next_state = 10;
+        next_state = 3;
 
     elseif state == 3 
-        %object selection
+        %object display
         
+        for k = 1:number_of_fractals_in_this_set
+            i = fractal_indexees(k);
+            img = fractals(i,:,:,:);  
+            img = reshape(img, [W_image, H_image, 3]); 
+            my_texture = Screen('MakeTexture', w_ptr, img);
+
+            
+            Screen('DrawTexture', w_ptr, my_texture, [], p_n(:,k), 2*pi*rand());
+             
+        end
+        
+        
+        Screen('Flip', w_ptr);
+
+        next_state = 4;
+
 
     elseif state == 4
-        % display off
+        % wait for selection
+        KbQueueFlush(DEVICE_NUMBER);
+        KbQueueStart(DEVICE_NUMBER);
+        
+        start_time = GetSecs();
+        positions = [];
+        while GetSecs() - start_time < FRACTAL_SHOW_SECONDS 
+            now = GetSecs();
+            [x, y] = GetMouse(w_ptr, MOUSE_DEVICE);
+            positions = [positions ; [now x y]];
+        end
+        
+        KbQueueStop(DEVICE_NUMBER);
+        [pressed, firstPress] = KbQueueCheck(DEVICE_NUMBER);
+
+        next_state = 10;
+        [pressed_chars, mouse_position] = give_pressed_keys(firstPress, positions)
+
+
+        % verification of score - ITI
+        if pressed == 0
+            next_state = 5;
+        elseif  strcmp(pressed_chars(1), 'x')
+            if to_have_high_value
+                % reject TP
+                next_state = 7;
+            else
+                %reject TA
+                next_state = 6;
+            end
+
+        else % pressed 'space'
+            if give_index_of_the_selected_fractal == -1
+                next_state = 5;
+            else
+                next_state = 8;
+            end
+        end  
 
     elseif state == 5
-        % NO PRESS 
+        % NO PRESS
+        
 
 
     elseif state == 6
-        % REJECT PRESS TA
+         % REJECT PRESS TA
 
 
     elseif state == 7
@@ -131,10 +177,12 @@ while state ~= 10
 
 
     elseif state == 8
-        % REWARD DELIVARY 
-
+         % REWARD DELIVARY
 
     elseif state == 9
+
+
+    elseif state == 10 
         % ending
         break
     end
@@ -145,6 +193,7 @@ while state ~= 10
 state = next_state;
 end
 
+KbQueueRelease();
 
 KbWait();
 sca();

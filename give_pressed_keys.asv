@@ -1,0 +1,20 @@
+function chars, mouse_position = give_pressed_keys(pressed_matricx, positions)
+    pressed_keys_index = find(pressed_matricx > 0);
+
+    press_time = pressed_matricx(pressed_keys_index);
+
+    [~, sorted_index] = sort(press_time);
+    ordered_codes = pressed_keys_index(sorted_index);
+
+    chars = cell(1, length(pressed_keys_index));
+    mouse_position = []
+    for i = 1:length(ordered_codes)
+        char = KbName(ordered_codes(i));
+        if strcmp(char, 'x') || strcmp(char, 'space')
+            chars{i} = char;
+        end
+    end
+
+    chars = chars(~cellfun('isempty', chars));
+
+end

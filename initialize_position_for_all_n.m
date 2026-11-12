@@ -1,11 +1,18 @@
-function [p_n3, p_n5, p_n7, p_n9] = initialize_position_for_all_n(window_rect, r, W_image, H_image)
-    p_n3 = initial_position_with_n(window_rect, 3, r, W_image, H_image);
-    p_n5 = initial_position_with_n(window_rect, 5, r, W_image,H_image);
-    p_n7 = initial_position_with_n(window_rect, 7, r, W_image,H_image);
-    p_n9 = initial_position_with_n(window_rect, 9, r, W_image,H_image);
+function [p_n3, p_n5, p_n7, p_n9, peripheral_circle_degree] = initialize_position_for_all_n(window_rect, r, W_image, H_image, distance , resolution_px_per_cm)
+    [p_n3, r_final] = initial_position_with_n(window_rect, 3, r, W_image, H_image);
+    [p_n5, ~] = initial_position_with_n(window_rect, 5, r, W_image,H_image);
+    [p_n7 ,~]= initial_position_with_n(window_rect, 7, r, W_image,H_image);
+    [p_n9, ~] = initial_position_with_n(window_rect, 9, r, W_image,H_image);
+    
+     r_cm = r_final / resolution_px_per_cm;
+
+    peripheral_circle_degree = 2 * atan(r_cm / distance);
+
+
+
 end
 
-function positions = initial_position_with_n(window_retc, n, r, W_image, H_image)
+function [positions, r] = initial_position_with_n(window_retc, n, r, W_image, H_image)
 
     %check the diameter of r
     r = min(max(r, H_image/sin(2 * pi/n)), W_image / (1-cos(2 * pi/n)) );
